@@ -7,9 +7,9 @@ const Stack = createNativeStackNavigator();
 
 function HomeScreen({ navigation }) {
   const data = [
-    { id: '1', name: 'Selin' },
-    { id: '2', name: 'Ahmet' },
-    { id: '3', name: 'Ayşe' },
+    { id: '1', name: '1. Kat' },
+    { id: '2', name: '2. Kat' },
+    { id: '3', name: '3. Kat' },
   ];
 
   return (
@@ -20,7 +20,7 @@ function HomeScreen({ navigation }) {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.item}
-            onPress={() => navigation.navigate('Profile', { userName: item.name })}
+            onPress={() => navigation.navigate('Kat', { floorName: item.name })}
           >
             <Text>{item.name}</Text>
           </TouchableOpacity>
@@ -29,13 +29,47 @@ function HomeScreen({ navigation }) {
     </View>
   );
 }
+function generateParkingSlots(b){
+  return Array.from({ length: 8 }, (_, i) => ({
+    id: i + 1,
+    status: 'empty',
+    block: b,
+  }));
+}
+function FloorScreen({ route }) {
+  const { floorName } = route.params;
+  const allSlots = [
+    ...generateParkingSlots('A'),
+    ...generateParkingSlots('B'),
+    ...generateParkingSlots('C'),
+  ];
 
-function ProfileScreen({ route }) {
-  const { userName } = route.params;
+  // Bloklara göre grupla
+  const groupedByBlock = allSlots.reduce((acc, slot) => {
+    if (!acc[slot.block]) acc[slot.block] = [];
+    acc[slot.block].push(slot);
+    return acc;
+  }, {});
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Profil Sayfası</Text>
-      <Text>Kullanıcı: {userName}</Text>
+      <Text style={styles.title}>{floorName}</Text>
+      
+      {Object.entries(groupedByBlock).map(([blockName, slots]) => (
+        <View key={blockName}>
+          <Text style={styles.title}>{blockName} Bloğu:</Text>
+          <View style={styles.grid}>
+            {slots.map((slot) => (
+              <View key={`${blockName}-${slot.id}`} style={styles.slot}>
+                <Text style={styles.slotText}>
+                  {blockName}-{slot.id}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ))}
+
     </View>
   );
 }
@@ -45,7 +79,7 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home">
         <Stack.Screen name="Home" component={HomeScreen} options={{ title: 'Anasayfa' }} />
-        <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profil' }} />
+        <Stack.Screen name="Kat" component={FloorScreen} options={{ title: 'Kat' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -63,4 +97,24 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 20,
   },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  slot: {
+    width: '12%',
+    aspectRatio: 1/3, 
+    backgroundColor: '#90caf9',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+    borderRadius: 8,
+  },
+  slotText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  }
+  
 });
